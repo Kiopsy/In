@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Portfolio
+{% endblock %}
+
+{% block main %}
+    <table class="table tablestriped">
+        <thead>
+            <tr>
+                <th class="text-start">Medcine</th>
+                <th class="text-start">Last "Refilled"</th>
+                <!-- Javascript to constantly change this dat -->
+                <th class="text-end">Lasting Length</th>
+            </tr>
+        </thead>
+       <tbody>
+            {% for med in inventory %}
+                <tr>
+                    <td class="text-start">{{ stock.name }}</td>
+                    <td class="text-start">{{ stock.name }}</td>
+                    <td class="text-end">{{ stock. }}</td>
+                    <td class="text-end">{{ stock.price | usd }}</td>
+                    <td class="text-end">{{ (stock.shares * stock.price) | usd }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
