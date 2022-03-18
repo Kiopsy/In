@@ -122,6 +122,18 @@ nav .navbar-brand .white:hover
     background-color: #AAE4FA; 
 }
 
+#formbuttons
+{
+    background-color: #01AEF0; 
+    border: none;
+    border-radius: 4px;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+}
 .footer
 {
     text-align: center;

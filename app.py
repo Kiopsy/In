@@ -1,5 +1,7 @@
+from cProfile import label
 import os
 from datetime import date, timedelta, datetime
+from weakref import ref
 from flask import Flask, flash, redirect, render_template, request, session
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -25,6 +27,7 @@ app.config.update(
     SECRET_KEY=b'pk_aafb84848ef145/#2sa'
 )
 
+# Dexcom API stuff
 CLIENT_ID = "F96Uu0m1gIR85MYFWEu25yl2ul3Tjjeo"
 CLIENT_SECRET = "5qQ7qVnZRRFTNM99"
 REDIRECT_URI = "http://127.0.0.1:5000/dexcom"
@@ -34,17 +37,16 @@ authorization_code = ""
 
 update = ""
 
-# Route Structure:
-#       
-#       Login
-#       Register
-# 
-#       1. Account
-#            a. changepass
-#            b. accountdetails
-#        2. Inventory
-#            a. Update
-#            b. Insert
+# Helper function to create a list of dictionaries similar to the database
+def makeDictList(rows):
+    lst = []
+    keys = ["name", "quantity", "acquired", "expiration"]
+    for row in rows:
+        dict = {}
+        for i in range(len(keys)):
+            dict[keys[i]] = row[i + 1]
+        lst.append(dict)
+    return lst
 
 @app.route("/inventory")
 @login_required
@@ -55,6 +57,10 @@ def inventory():
     # SQL Cursor
     cursor = connection.cursor()
 
+    # Delete all cases where quantity is 0 before displaying
+    sql_command = "DELETE FROM inventory WHERE quantity=0"
+    cursor.execute(sql_command)
+
     # Selects the account data for current user
     sql_command = "SELECT * FROM inventory WHERE id=?"
     cursor.execute(sql_command, [session["user_id"]])
@@ -62,55 +68,82 @@ def inventory():
     rows = cursor.fetchall()
     connection.close()
 
+    # Rows returns a list of tuples (ex: [(1, 'Humalog', 4, '2022-02-28', '4')])
+    #   -> Use this to create a list of dictionaries
+    inventory = makeDictList(rows)
+
     # Renders the account page with passed in user account data
-    return render_template("inventory.html", details=rows[0])
+    return render_template("inventory.html", inventory=inventory)
 
 @app.route("/update", methods=["GET", "POST"])
 @login_required
 def update():
-    # Query the existing to change the number only
-
     # Connect to database & get cursor
     connection = sqlite3.connect("database.db") 
     cursor = connection.cursor()
-
-    # Selects the account data for current user
+    
+    # Query to get all medicine names
     sql_command = "SELECT * FROM inventory WHERE id=?"
     cursor.execute(sql_command, [session["user_id"]])
 
-    # Updates the account details on the current user's account
-    sql_command = "UPDATE users SET fullname=?, label=?, description=? WHERE id=?"
-    cursor.execute(sql_command, [request.form.get("fullname"), request.form.get("label"), request.form.get("description"), session["user_id"]])
+    rows = cursor.fetchall()
+    inventory = makeDictList(rows)
 
+    labels = []
+    for item in inventory:
+        labels.append(item['name'])
 
     rows = cursor.fetchall()
-    connection.close()
 
-    return render_template("update.html")
+    if request.method == "POST":
+        medicinename = request.form.get("medicinename")
+        quantity = request.form.get("quantity")
+        dateacquired = request.form.get("dateacquired")
+        refills = request.form.get("refills")
+
+        # Ensures the user inputted all values within the form (full name, label, and description)
+        if not medicinename or not quantity or not dateacquired or not refills :
+            flash("Must input all three values!")
+            return render_template("inventory.html")
+            
+        # Updates the account details on the current user's account
+        sql_command = "UPDATE inventory SET medicinename=?, quantity=?, quantity=?, expiration=? WHERE id=? AND medicinename=?"
+        cursor.execute(sql_command, [medicinename, quantity, dateacquired, refills, session["user_id"], medicinename])
+        connection.close()
+
+    # User reached route via GET (as by clicking update link)
+    else:
+        connection.close()
+        return render_template("update.html", labels=labels)
 
 @app.route("/insert", methods=["GET", "POST"])
 @login_required
 def insert():
 
     if request.method == "POST":
+        medicinename = request.form.get("medicinename")
+        quantity = request.form.get("quantity")
+        dateacquired = request.form.get("dateacquired")
+        refills = request.form.get("refills")
+
         # Ensures the user inputted all values within the form (full name, label, and description)
-        if not request.form.get("fullname") or not request.form.get("label") or not request.form.get("description") :
+        if not medicinename or not quantity or not dateacquired or not refills :
             flash("Must input all three values!")
-            return render_template("accountdetails.html", labels=labels)
+            return render_template("inventory.html")
             
         # Connects to database & cursor
         connection = sqlite3.connect("database.db") 
         cursor = connection.cursor()
 
         # Insert an inventory entry
-        sql_command = "INSERT INTO inverntory VALUES (?, ?, ?)"
-        cursor.execute(sql_command, )
+        sql_command = "INSERT INTO inventory VALUES (?, ?, ?, ?, ?)"
+        cursor.execute(sql_command, [session["user_id"], medicinename, quantity, dateacquired, refills])
 
         # Commits SQL changes
         connection.commit()
         connection.close()
 
-        return render_template("inventory.html")
+        return redirect("\inventory")
 
     # User reached route via GET (as by clicking a link or via redirect)
     else: 

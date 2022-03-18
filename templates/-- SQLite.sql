@@ -12,3 +12,6 @@
 -- Create a table for inventory:
 -- id for the session user, string for the name of the item, quantity,  datetime for date acquired, expiration date 
 -- create two tables: users and inventory
+SQLite
+CREATE TABLE users(id INTEGER PRIMARY KEY, username TEXT NOT NULL, hash TEXT NOT NULL, fullname TEXT, label TEXT, description TEXT);
+CREATE TABLE inventory(id INT NOT NULL, medicinename TEXT NOT NULL, quantity INT NOT NULL, dateacquired TEXT NOT NULL, expiration INT NOT NULL);

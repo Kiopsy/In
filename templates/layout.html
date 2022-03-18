@@ -18,19 +18,19 @@
             <!-- https://www.chartjs.org/ -->
             <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
-            <title>Blood Sugar Stabilization: {% block title %}{% endblock %}</title>
+            <title>Medicine Inventory: {% block title %}{% endblock %}</title>
         </head>
         <body class="body">
             <!-- Bootstrap Navbar implementation from: https://getbootstrap.com/docs/4.0/components/navbar/ -->
             <nav class="navbar navbar-expand-lg" style="background-color: #01AEF0">
-            <a class="navbar-brand" href="/"><span class="white">Blood Sugar Stabilization</span></a>
+            <a class="navbar-brand" href="/"><span class="white">Medicine Inventory</span></a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 {% if session.user_id %}
                     <ul class="navbar-nav mr-auto mt-2">
-                        <li class="nav-item"><a class="nav-link" href="/about">Inventory</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/inventory">Inventory</a></li>
                         <li class="nav-item"><a class="nav-link" href="/account">Account</a></li>
                     </ul>
                     <ul class="navbar-nav ml-auto mt-2">
@@ -59,8 +59,8 @@
             </main>
 
             <footer class="footer">
-                <!-- TODO: change footer -->
-                Blood sugar data provided by <a id="dexcomlink" href="https://www.dexcom.com/">Dexcom</a>.
+                <!-- Blood sugar data provided by <a id="dexcomlink" href="https://www.dexcom.com/">Dexcom</a>. -->
+                A web application created by Victor Goncalves. 
             </footer>
         <body>
     </html>
